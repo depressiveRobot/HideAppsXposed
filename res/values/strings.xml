@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">Hide Apps Xposed</string>
+    <string name="reboot_toast">Changes will apply after reboot!</string>
+
+</resources>
