@@ -4,8 +4,8 @@ Xposed module to hide apps from the Google Experience Launcher (GEL).
 
 ## Xposed Module Repository URL
 
-*TODO*
+http://repo.xposed.info/module/de.depressiverobot.android.xposed.hideappsxposed
 
 ## Support / discussion
 
-*TODO*
+http://forum.xda-developers.com/showthread.php?p=49336693
