@@ -15,7 +15,7 @@
  * permissions and limitations under the License.
  */
 
-package de.depressiverobot.xposed;
+package de.depressiverobot.android.xposed.hideappsxposed;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -23,7 +23,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import de.depressiverobot.xposed.R;
+import de.depressiverobot.android.xposed.hideappsxposed.R;
 import android.annotation.SuppressLint;
 import android.app.ListActivity;
 import android.app.ProgressDialog;

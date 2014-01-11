@@ -15,11 +15,11 @@
  * permissions and limitations under the License.
  */
 
-package de.depressiverobot.xposed;
+package de.depressiverobot.android.xposed.hideappsxposed;
 
 import java.util.List;
 
-import de.depressiverobot.xposed.R;
+import de.depressiverobot.android.xposed.hideappsxposed.R;
 
 import android.content.Context;
 import android.content.pm.ApplicationInfo;

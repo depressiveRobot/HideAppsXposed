@@ -5,7 +5,7 @@
  * should not be modified by hand.
  */
 
-package de.depressiverobot.xposed;
+package de.depressiverobot.android.xposed.hideappsxposed;
 
 public final class R {
     public static final class attr {

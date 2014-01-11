@@ -15,7 +15,7 @@
  * permissions and limitations under the License.
  */
 
-package de.depressiverobot.xposed;
+package de.depressiverobot.android.xposed.hideappsxposed;
 
 import java.util.ArrayList;
 import java.util.Arrays;
