@@ -22,8 +22,8 @@ import java.util.List;
 import de.depressiverobot.android.xposed.hideappsxposed.R;
 
 import android.content.Context;
-import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -35,16 +35,16 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
  
-public class ApplicationAdapter extends ArrayAdapter<ApplicationInfo> {
+public class ApplicationAdapter extends ArrayAdapter<ResolveInfo> {
 	
-    private List<ApplicationInfo> appsList;
+    private List<ResolveInfo> appsList;
     private List<Boolean> checkList;
     private Context context;
     private PackageManager packageManager;
 	private boolean showToast = true;
     
     public ApplicationAdapter(Context context, int textViewResourceId,
-            List<ApplicationInfo> appsList, List<Boolean> checkList) {
+            List<ResolveInfo> appsList, List<Boolean> checkList) {
         super(context, textViewResourceId, appsList);
         this.context = context;
         this.appsList = appsList;
@@ -62,7 +62,7 @@ public class ApplicationAdapter extends ArrayAdapter<ApplicationInfo> {
     }
  
     @Override
-    public ApplicationInfo getItem(int position) {
+    public ResolveInfo getItem(int position) {
         return ((null != appsList) ? appsList.get(position) : null);
     }
  
@@ -80,7 +80,7 @@ public class ApplicationAdapter extends ArrayAdapter<ApplicationInfo> {
             view = layoutInflater.inflate(R.layout.snippet_list_row, null);
         }
  
-        ApplicationInfo data = appsList.get(position);
+        ResolveInfo data = appsList.get(position);
         if (null != data) {
         	ImageView iconview = (ImageView) view.findViewById(R.id.app_icon);
         	iconview.setImageDrawable(data.loadIcon(packageManager));

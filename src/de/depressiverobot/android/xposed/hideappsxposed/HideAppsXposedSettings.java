@@ -28,9 +28,10 @@ import android.annotation.SuppressLint;
 import android.app.ListActivity;
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
 import android.os.AsyncTask;
 import android.os.Bundle;
 
@@ -42,7 +43,7 @@ public class HideAppsXposedSettings extends ListActivity {
 	public static final String APPS_TO_HIDE_KEY = "HideAppsXposedSettings.APPS_TO_HIDE";
 	
 	private PackageManager packageManager = null;
-    private List<ApplicationInfo> appsList = null;
+    private List<ResolveInfo> appsList = null;
     private ArrayList<Boolean> checkList = null;
     private Set<String> appsToHide = new HashSet<String>();
     private ApplicationAdapter listAdaptor = null;
@@ -85,30 +86,22 @@ public class HideAppsXposedSettings extends ListActivity {
 		SharedPreferences prefs = getSharedPreferences(PREFERENCES_NAME, Context.MODE_WORLD_READABLE);
 		this.appsToHide = prefs.getStringSet(APPS_TO_HIDE_KEY, new HashSet<String>());
     }
- 
-    private List<ApplicationInfo> checkForLaunchIntent(List<ApplicationInfo> list) {
-        ArrayList<ApplicationInfo> applist = new ArrayList<ApplicationInfo>();
-        for (ApplicationInfo info : list) {
-            try {
-                if (null != packageManager.getLaunchIntentForPackage(info.packageName)) {
-                    applist.add(info);
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
- 
-        return applist;
-    }
     
     private class LoadApplications extends AsyncTask<Void, Void, Void> {
         private ProgressDialog progress = null;
  
         @Override
         protected Void doInBackground(Void... params) {
-        	appsList = packageManager.getInstalledApplications(PackageManager.GET_META_DATA);
-            appsList = checkForLaunchIntent(appsList);
-            Collections.sort(appsList, new ApplicationInfo.DisplayNameComparator(packageManager));
+
+        	// load all launcher activities 
+        	final Intent mainIntent = new Intent(Intent.ACTION_MAIN, null);
+            mainIntent.addCategory(Intent.CATEGORY_LAUNCHER);
+            appsList = packageManager.queryIntentActivities(mainIntent, 0);
+            
+            // sort list of apps alphabetically
+            Collections.sort(appsList, new ResolveInfo.DisplayNameComparator(packageManager));
+            
+            // create checklist containing information which apps should be marked as hidden
             checkList = new ArrayList<Boolean>(appsList.size());
         	for (int i = 0; i < appsList.size(); i++) {
         		if (appsToHide.contains(String.valueOf(appsList.get(i).loadLabel(packageManager)))) {
