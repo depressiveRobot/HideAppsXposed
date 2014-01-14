@@ -80,33 +80,6 @@ public class HideAppsXposed implements IXposedHookLoadPackage, IXposedHookZygote
                 	}
                 }
 			});
-			
-			// called during update of apps
-			XposedBridge.hookAllMethods(classAppsCustomizePagedView, "addApps", new XC_MethodHook() {
-				
-                @SuppressWarnings("rawtypes")
-				@Override
-                protected void beforeHookedMethod(final MethodHookParam param) throws Throwable {
-                	
-                	prefs.reload();
-                	
-                	// this will be called before the apps will be added
-                	// to the app drawer
-                	ArrayList apps = (ArrayList) param.args[0];
-                	Iterator appIter = apps.iterator();
-                	while (appIter.hasNext()) {
-                		Object app = appIter.next();
-                		Set<String> appsToHide = prefs.getStringSet(HideAppsXposedSettings.APPS_TO_HIDE_KEY, new HashSet<String>());
-                		for (String appToHide : appsToHide) {
-                			if (app.toString().contains(appToHide)) {
-                				appIter.remove();
-                				XposedBridge.log(TAG + "Hiding added app: " + appToHide);
-                				break;
-                			}
-                		}
-                	}
-                }
-			});
 		}
 	}
 
