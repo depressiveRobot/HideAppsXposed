@@ -17,6 +17,7 @@
 
 package de.depressiverobot.android.xposed.hideappsxposed;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -34,13 +35,17 @@ import de.robv.android.xposed.callbacks.XC_LoadPackage.LoadPackageParam;
 
 public class HideAppsXposed implements IXposedHookLoadPackage, IXposedHookZygoteInit {
 
+	// tag used for logging
 	public static final String TAG = "HIDE_APPS_XPOSED: ";
-	 
-	public static final List<String> PACKAGE_NAMES = new ArrayList<String>(
-			Arrays.asList("com.android.launcher3", "com.google.android.googlequicksearchbox"));
 	
+	// GEL package and class names
+	public static final String APPS_CUSTOMIZE_PAGED_VIEW_CLASS = "com.android.launcher3.AppsCustomizePagedView";
+	public static final String ITEM_INFO_CLASS = "com.android.launcher3.ItemInfo";
+	public static final List<String> GEL_PACKAGE_NAMES = new ArrayList<String>(Arrays.asList("com.android.launcher3", "com.google.android.googlequicksearchbox"));
+	
+	// used to store the preferences of the Hide Apps Xposed app
 	private static XSharedPreferences prefs;
-
+	
 	@Override
 	public void initZygote(StartupParam startupParam) throws Throwable {
 		
@@ -50,18 +55,25 @@ public class HideAppsXposed implements IXposedHookLoadPackage, IXposedHookZygote
 	@Override
 	public void handleLoadPackage(final LoadPackageParam lpparam) throws Throwable {
 
-		if (PACKAGE_NAMES.contains(lpparam.packageName)) {
+		if (GEL_PACKAGE_NAMES.contains(lpparam.packageName)) {
 			
-			final Class<?> classAppsCustomizePagedView = XposedHelpers.findClass("com.android.launcher3.AppsCustomizePagedView", lpparam.classLoader);
+			final Class<?> appsCustomizePagedViewClass =  XposedHelpers.findClass(APPS_CUSTOMIZE_PAGED_VIEW_CLASS, lpparam.classLoader);
+			
+    		// as we do not have the GEL classes in the classpath we need to get
+    		// the information using Java reflection
+			final Class<?> itemInfoClass = XposedHelpers.findClass(ITEM_INFO_CLASS, lpparam.classLoader);
+    		final Field itemInfoTitleField = itemInfoClass.getDeclaredField("title");
+    		itemInfoTitleField.setAccessible(true);
 			
 			// called when launcher is started
-			XposedBridge.hookAllMethods(classAppsCustomizePagedView, "setApps", new XC_MethodHook() {
+			XposedBridge.hookAllMethods(appsCustomizePagedViewClass, "setApps", new XC_MethodHook() {
 				
                 @SuppressWarnings("rawtypes")
 				@Override
                 protected void beforeHookedMethod(final MethodHookParam param) throws Throwable {
                 	
                 	prefs.reload();
+                	Set<String> appsToHide = prefs.getStringSet(HideAppsXposedSettings.APPS_TO_HIDE_KEY, new HashSet<String>());
                 	
                 	// this will be called before the apps will be added
                 	// to the app drawer
@@ -69,9 +81,9 @@ public class HideAppsXposed implements IXposedHookLoadPackage, IXposedHookZygote
                 	Iterator appIter = apps.iterator();
                 	while (appIter.hasNext()) {
                 		Object app = appIter.next();
-                		Set<String> appsToHide = prefs.getStringSet(HideAppsXposedSettings.APPS_TO_HIDE_KEY, new HashSet<String>());
+                		String appTitle = (String) itemInfoTitleField.get(app);
                 		for (String appToHide : appsToHide) {
-                			if (app.toString().contains(appToHide)) {
+                			if (appTitle.equals(appToHide)) {
                 				appIter.remove();
                 				XposedBridge.log(TAG + "Hiding app: " + appToHide);
                 				break;
