@@ -42,6 +42,8 @@ public class HideAppsXposedSettings extends ListActivity {
 	public static final String PREFERENCES_NAME = HideAppsXposedSettings.class.getSimpleName();
 	public static final String APPS_TO_HIDE_KEY = "HideAppsXposedSettings.APPS_TO_HIDE";
 	
+	public static final String LABEL_PACKAGENAME_SEPERATOR = "#$#";
+	
 	private PackageManager packageManager = null;
     private List<ResolveInfo> appsList = null;
     private ArrayList<Boolean> checkList = null;
@@ -67,7 +69,9 @@ public class HideAppsXposedSettings extends ListActivity {
     	Set<String> appsToSave = new HashSet<String>();
     	for (int i = 0; i < appsList.size(); i++) {
     		if (listAdaptor.getCheckList().get(i)) {
-    			appsToSave.add(String.valueOf(appsList.get(i).loadLabel(packageManager)));
+    			String label = appsList.get(i).loadLabel(packageManager).toString();
+    			String packageName = appsList.get(i).activityInfo.packageName;
+    			appsToSave.add(label + LABEL_PACKAGENAME_SEPERATOR + packageName);
     		}
     	}
     	
@@ -104,7 +108,9 @@ public class HideAppsXposedSettings extends ListActivity {
             // create checklist containing information which apps should be marked as hidden
             checkList = new ArrayList<Boolean>(appsList.size());
         	for (int i = 0; i < appsList.size(); i++) {
-        		if (appsToHide.contains(String.valueOf(appsList.get(i).loadLabel(packageManager)))) {
+        		String label = appsList.get(i).loadLabel(packageManager).toString();
+        		String packageName = appsList.get(i).activityInfo.packageName;
+        		if (appsToHide.contains(label + LABEL_PACKAGENAME_SEPERATOR + packageName)) {
         			checkList.add(true);
         		} else {
         			checkList.add(false);

@@ -25,6 +25,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
+import android.content.ComponentName;
+
 import de.robv.android.xposed.IXposedHookLoadPackage;
 import de.robv.android.xposed.IXposedHookZygoteInit;
 import de.robv.android.xposed.XC_MethodHook;
@@ -41,6 +43,7 @@ public class HideAppsXposed implements IXposedHookLoadPackage, IXposedHookZygote
 	// GEL package and class names
 	public static final String APPS_CUSTOMIZE_PAGED_VIEW_CLASS = "com.android.launcher3.AppsCustomizePagedView";
 	public static final String ITEM_INFO_CLASS = "com.android.launcher3.ItemInfo";
+	public static final String APP_INFO_CLASS = "com.android.launcher3.AppInfo";
 	public static final List<String> GEL_PACKAGE_NAMES = new ArrayList<String>(Arrays.asList("com.android.launcher3", "com.google.android.googlequicksearchbox"));
 	
 	// used to store the preferences of the Hide Apps Xposed app
@@ -64,6 +67,10 @@ public class HideAppsXposed implements IXposedHookLoadPackage, IXposedHookZygote
 			final Class<?> itemInfoClass = XposedHelpers.findClass(ITEM_INFO_CLASS, lpparam.classLoader);
     		final Field itemInfoTitleField = itemInfoClass.getDeclaredField("title");
     		itemInfoTitleField.setAccessible(true);
+    		
+    		final Class<?> appInfoClass = XposedHelpers.findClass(APP_INFO_CLASS, lpparam.classLoader);
+    		final Field appInfoComponentNameField = appInfoClass.getDeclaredField("componentName");
+    		appInfoComponentNameField.setAccessible(true);
 			
 			// called when launcher is started
 			XposedBridge.hookAllMethods(appsCustomizePagedViewClass, "setApps", new XC_MethodHook() {
@@ -81,11 +88,12 @@ public class HideAppsXposed implements IXposedHookLoadPackage, IXposedHookZygote
                 	Iterator appIter = apps.iterator();
                 	while (appIter.hasNext()) {
                 		Object app = appIter.next();
-                		String appTitle = (String) itemInfoTitleField.get(app);
+                		String label = (String) itemInfoTitleField.get(app);
+                		String packageName = ((ComponentName) appInfoComponentNameField.get(app)).getPackageName();
                 		for (String appToHide : appsToHide) {
-                			if (appTitle.equals(appToHide)) {
+                			if (appToHide.equals(label + HideAppsXposedSettings.LABEL_PACKAGENAME_SEPERATOR + packageName)) {
                 				appIter.remove();
-                				XposedBridge.log(TAG + "Hiding app: " + appToHide);
+                				XposedBridge.log(TAG + "Hiding app: " + label + "(" + packageName + ")");
                 				break;
                 			}
                 		}
