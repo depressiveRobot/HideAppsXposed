@@ -49,6 +49,9 @@ public class HideAppsXposed implements IXposedHookLoadPackage, IXposedHookZygote
 	// used to store the preferences of the Hide Apps Xposed app
 	private static XSharedPreferences prefs;
 	
+	private static Field itemInfoTitleField;
+	private static Field appInfoComponentNameField;
+	
 	@Override
 	public void initZygote(StartupParam startupParam) throws Throwable {
 		
@@ -65,42 +68,52 @@ public class HideAppsXposed implements IXposedHookLoadPackage, IXposedHookZygote
     		// as we do not have the GEL classes in the classpath we need to get
     		// the information using Java reflection
 			final Class<?> itemInfoClass = XposedHelpers.findClass(ITEM_INFO_CLASS, lpparam.classLoader);
-    		final Field itemInfoTitleField = itemInfoClass.getDeclaredField("title");
+    		itemInfoTitleField = itemInfoClass.getDeclaredField("title");
     		itemInfoTitleField.setAccessible(true);
     		
     		final Class<?> appInfoClass = XposedHelpers.findClass(APP_INFO_CLASS, lpparam.classLoader);
-    		final Field appInfoComponentNameField = appInfoClass.getDeclaredField("componentName");
+    		appInfoComponentNameField = appInfoClass.getDeclaredField("componentName");
     		appInfoComponentNameField.setAccessible(true);
 			
+    		XC_MethodHook hideAppsMethodHook = new HideAppsMethodHook();
+    		
 			// called when launcher is started
-			XposedBridge.hookAllMethods(appsCustomizePagedViewClass, "setApps", new XC_MethodHook() {
-				
-                @SuppressWarnings("rawtypes")
-				@Override
-                protected void beforeHookedMethod(final MethodHookParam param) throws Throwable {
-                	
-                	prefs.reload();
-                	Set<String> appsToHide = prefs.getStringSet(HideAppsXposedSettings.APPS_TO_HIDE_KEY, new HashSet<String>());
-                	
-                	// this will be called before the apps will be added
-                	// to the app drawer
-                	ArrayList apps = (ArrayList) param.args[0];
-                	Iterator appIter = apps.iterator();
-                	while (appIter.hasNext()) {
-                		Object app = appIter.next();
-                		String label = (String) itemInfoTitleField.get(app);
-                		String packageName = ((ComponentName) appInfoComponentNameField.get(app)).getPackageName();
-                		for (String appToHide : appsToHide) {
-                			if (appToHide.equals(label + HideAppsXposedSettings.LABEL_PACKAGENAME_SEPERATOR + packageName)) {
-                				appIter.remove();
-                				XposedBridge.log(TAG + "Hiding app: " + label + "(" + packageName + ")");
-                				break;
-                			}
-                		}
-                	}
-                }
-			});
+			XposedBridge.hookAllMethods(appsCustomizePagedViewClass, "setApps", hideAppsMethodHook);
+			
+			// called when apps get added while launcher is running
+			XposedBridge.hookAllMethods(appsCustomizePagedViewClass, "addApps", hideAppsMethodHook);
+			
+			// called when apps get updated while launcher is running
+			XposedBridge.hookAllMethods(appsCustomizePagedViewClass, "updateApps", hideAppsMethodHook);
 		}
 	}
 
+	private class HideAppsMethodHook extends XC_MethodHook {
+		
+		@SuppressWarnings("rawtypes")
+		@Override
+        protected void beforeHookedMethod(final MethodHookParam param) throws Throwable {
+        	
+        	prefs.reload();
+        	Set<String> appsToHide = prefs.getStringSet(HideAppsXposedSettings.APPS_TO_HIDE_KEY, new HashSet<String>());
+        	
+        	// this will be called before the apps will be added
+        	// to the app drawer
+        	ArrayList apps = (ArrayList) param.args[0];
+        	Iterator appIter = apps.iterator();
+        	while (appIter.hasNext()) {
+        		Object app = appIter.next();
+        		String label = (String) itemInfoTitleField.get(app);
+        		String packageName = ((ComponentName) appInfoComponentNameField.get(app)).getPackageName();
+        		for (String appToHide : appsToHide) {
+        			if (appToHide.equals(label + HideAppsXposedSettings.LABEL_PACKAGENAME_SEPERATOR + packageName)) {
+        				appIter.remove();
+        				XposedBridge.log(TAG + "Hiding app: " + label + " (" + packageName + ")");
+        				break;
+        			}
+        		}
+        	}
+        }
+	}
+	
 }
