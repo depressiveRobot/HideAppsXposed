@@ -1,6 +1,6 @@
 # Hide Apps Xposed
 
-Xposed module to hide apps from the Google Experience Launcher (GEL).
+Xposed module to hide apps from the `Google Now Launcher` (GNL), formerly know as `Google Experience Launcher` (GEL).
 
 ## Xposed Module Repository URL
 

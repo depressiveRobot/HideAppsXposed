@@ -19,8 +19,8 @@
 
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="de.depressiverobot.android.xposed.hideappsxposed"
-    android:versionCode="5"
-    android:versionName="1.1.0" >
+    android:versionCode="6"
+    android:versionName="1.1.1" >
 
     <uses-sdk
         android:minSdkVersion="15"
@@ -33,7 +33,7 @@
         android:theme="@style/AppTheme" >
         <meta-data android:value="true" android:name="xposedmodule"/>
         <meta-data android:value="42+" android:name="xposedminversion"/>
-        <meta-data android:value="Hide apps from the Google Experience Launcher (GEL)." android:name="xposeddescription"/>
+        <meta-data android:value="Hide apps from the Google Now Launcher (GNL)." android:name="xposeddescription"/>
         <activity
             android:name="de.depressiverobot.android.xposed.hideappsxposed.HideAppsXposedSettings"
             android:label="@string/app_name" >
